@@ -1,0 +1,114 @@
+---
+title: My dynamic report
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+
+```
+
+```{css}
+
+```
+
+## What's going on with this data?
+
+Tracking my Instagram feed observations.
+
+This dynamic report analyses the Instagram posts I observed over time using my Google Form. Each row in the dataset represents one post that I saw on my feed. I am using this report to explore what kinds of content appear most often, how long I spend viewing them, how I engage with them, and whether they seem targeted to me.
+
+```{r}
+library(tidyverse)
+
+logged_data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOzhX80p01vwQMLgBleh2LriokZe3IhZhxPI9qjzmHhhclMOOt-Fc679flI8mK3qlS90IAuSbVtxT/pub?output=csv")
+
+latest_data <- logged_data %>%
+  rename(
+    content_type = `What type of content is this post?`,
+    time_seconds = `How many seconds did you spend viewing this post?`,
+    engagement = `Did you engage with the post?`,
+    related = `Relevance`,
+    is_targeted = `Was this clearly targeted to you?`
+  )
+
+```
+
+### Summary of the data
+
+```{r}
+summary_stats <- latest_data %>%
+  summarise(
+    total_observations = n(),
+    mean_time_seconds = mean(time_seconds, na.rm = TRUE),
+    max_time_seconds = max(time_seconds, na.rm = TRUE)
+  )
+
+top_content <- latest_data %>%
+  count(content_type, sort = TRUE) %>%
+  slice(1)
+
+```
+
+```{r}
+summary_stats
+top_content
+```
+
+I recorded **`r summary_stats$total_observations`** Instagram posts in total over the observation period.
+
+The average time spent viewing each post was **`r round(summary_stats$mean_time_seconds, 1)` seconds**, indicating how long content typically holds my attention.
+
+The maximum viewing time recorded was **`r summary_stats$max_time_seconds` seconds**, suggesting that some posts are significantly more engaging than others.
+
+The most frequently observed content type was **`r top_content$content_type`**, appearing **`r top_content$n` times**, which suggests this type of content dominates my Instagram feed.
+
+
+### Content type distribution
+
+```{r}
+plot1 <-latest_data %>%
+  ggplot(aes(x = content_type)) +
+  geom_bar() +
+  labs(
+    title = "Distribution of content types",
+    x = "Content type",
+    y = "Number of posts"
+  ) +
+  theme_minimal()
+
+```  
+```{r}
+plot1
+```
+
+The bar chart above shows the distribution of content types observed on my Instagram feed.
+
+It is clear that **`r top_content$content_type`** is the most common content type, which aligns with the summary statistics. This suggests that my feed is heavily influenced by this category of content.
+
+
+### Engagement distribution
+
+```{r}  
+plot2<- latest_data %>%
+  ggplot(aes(x = engagement)) +
+  geom_bar() +
+  labs(
+    title = "Distribution of engagement types",
+    x = "Engagement type",
+    y = "Number of posts"
+  ) +
+  theme_minimal()
+
+top_engagement <- latest_data %>%
+  count(engagement, sort = TRUE) %>%
+  slice(1)
+```
+```{r}
+plot2
+top_engagement
+```
+The bar chart above displays how I interacted with the posts I observed.
+
+The most common engagement type was **`r top_engagement$engagement`**, indicating that this is the way I most frequently interact with content. This may suggest a preference for certain types of engagement over others.
+
